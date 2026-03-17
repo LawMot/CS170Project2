@@ -96,9 +96,6 @@ def leave_one_out(data, subset, best_accuracy):
         classify_object = features[i, :]
         label = labels[i]
 
-        nearest_dist = float('inf')
-        nearest_label = None
-
         # euclidean distance
         dist = np.sum((classify_object - features)**2, axis=1)
         dist[i] = np.inf
