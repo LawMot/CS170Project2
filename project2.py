@@ -7,6 +7,7 @@ def forward_selection(data):
     num_features = data.shape[1] - 1
     curr = [] #empty set
     best_accuracy = -1
+    best_subset = []
     
     print("Beginning search.")
     # outer loop for interating through the features
@@ -32,10 +33,11 @@ def forward_selection(data):
             print("(Warning, Accuracy has decreased! Continuing search in case of local maxima)")
         elif best > best_accuracy:
             best_accuracy = best
+            best_subset = curr.copy()
 
         print(f"Feature set {set(curr)} was best, accuracy is {best*100:.1f}%\n")
 
-    return curr, best_accuracy
+    return best_subset, best_accuracy
 
 def backward_elimination(data):
     # col 0 is the label
@@ -146,7 +148,7 @@ def main():
     end_time = time.time() #end timer
     elapsed = end_time - start_time
 
-    print(f"Finished search!! The best feature subset is {tuple(result)}, which has an accuracy of {final_accuracy*100:.1f}%")
+    print(f"Finished search!! The best feature subset is {set(result)}, which has an accuracy of {final_accuracy*100:.1f}%")
     print(f"Total computation time: {elapsed:.2f} seconds")
 
 main()
