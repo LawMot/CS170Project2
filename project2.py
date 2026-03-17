@@ -99,17 +99,12 @@ def leave_one_out(data, subset, best_accuracy):
         nearest_dist = float('inf')
         nearest_label = None
 
-        #compares against ever other feature
-        #to find which is closest
-        for j in range(size):
-            if j != i:
-                # euclidean distance
-                dist = np.sum((classify_object - features[j])**2)
+        # euclidean distance
+        dist = np.sum((classify_object - features)**2, axis=1)
+        dist[i] = np.inf
 
-                if dist < nearest_dist:
-                    nearest_dist = dist
-                    nearest_label = labels[j]
-        if label == nearest_label: #found nearest neighbor
+        nearest_neighbor_index = np.argmin(dist)
+        if label == labels[nearest_neighbor_index]: #found nearest neighbor
             correct +=1
         else:
             num_wrong += 1
