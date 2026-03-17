@@ -1,1 +1,1 @@
-# CS170Project2
+# Feature selection with nearest neighbor.
