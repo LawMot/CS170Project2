@@ -6,7 +6,7 @@ def forward_selection(data):
     # col 0 is the label
     num_features = data.shape[1] - 1
     curr = [] #empty set
-    best_accuracy = -1
+    best_accuracy = 0
     best_subset = []
     
     print("Beginning search.")
@@ -21,7 +21,7 @@ def forward_selection(data):
             if j not in curr:
             
                 test_feature = curr + [j]
-                accuracy = leave_one_out(data, test_feature)
+                accuracy = leave_one_out(data, test_feature, best_accuracy)
                 print(f"Using feature(s) {set(test_feature)} accuracy is {accuracy*100:.1f}%")
                 
                 if accuracy > best:
@@ -29,11 +29,12 @@ def forward_selection(data):
                     added_feature = j
         if added_feature != None:
             curr.append(added_feature)
-        if best < best_accuracy:
-            print("(Warning, Accuracy has decreased! Continuing search in case of local maxima)")
-        elif best > best_accuracy:
-            best_accuracy = best
-            best_subset = curr.copy()
+         #if this subset is better than the best so far, store it
+            if best > best_accuracy:
+                best_accuracy = best
+                best_subset = curr.copy()
+            else:
+                print("(Warning, Accuracy has decreased! Continuing search in case of local maxima)")
 
         print(f"Feature set {set(curr)} was best, accuracy is {best*100:.1f}%\n")
 
@@ -45,7 +46,7 @@ def backward_elimination(data):
     curr = list(range(1,num_features+1)) #start with all features
     # best subset initialized with all features
     best_subset = curr.copy()
-    best_accuracy = leave_one_out(data, curr)
+    best_accuracy = leave_one_out(data, curr, 0)
 
     print("Beginning search.\n")
     #remove features til only one is left
@@ -57,7 +58,7 @@ def backward_elimination(data):
         for feature in curr:
             test_feature = curr.copy()
             test_feature.remove(feature)
-            accuracy = leave_one_out(data, test_feature)
+            accuracy = leave_one_out(data, test_feature, best_accuracy)
 
             print(f"Using feature(s) {set(test_feature)} accuracy is {accuracy*100:.1f}%")
             
@@ -67,14 +68,12 @@ def backward_elimination(data):
 
         if remove_feature != None:
             curr.remove(remove_feature)
-
-        if best < best_accuracy:
-            print("(Warning, Accuracy has decreased! Continuing search in case of local maxima)")
-
-        #if this subset is better than the best so far, store it
-        if best > best_accuracy:
-            best_accuracy = best
-            best_subset = curr.copy()
+            #if this subset is better than the best so far, store it
+            if best > best_accuracy:
+                best_accuracy = best
+                best_subset = curr.copy()
+            else:
+                print("(Warning, Accuracy has decreased! Continuing search in case of local maxima)")
 
         print(f"Feature set {set(curr)} was best, accuracy is {best*100:.1f}%\n")
 
@@ -82,17 +81,19 @@ def backward_elimination(data):
 
 #leave one out cross-validation
 # using nearest neighbor classifier 
-def leave_one_out(data, subset):
+def leave_one_out(data, subset, best_accuracy):
     # correct used to keep track of features correctly identified
     correct = 0
     size = len(data)
+    num_wrong = 0
 
+    max_errors = size - int(best_accuracy * size)
     labels = data[:,0]
     features = data[:, subset]
 
     #iterate through each feature within the dataset
     for i in range(size):
-        classify_object = features[i]
+        classify_object = features[i, :]
         label = labels[i]
 
         nearest_dist = float('inf')
@@ -110,6 +111,12 @@ def leave_one_out(data, subset):
                     nearest_label = labels[j]
         if label == nearest_label: #found nearest neighbor
             correct +=1
+        else:
+            num_wrong += 1
+        
+        # stop if we've failed more than allowed
+        if num_wrong > max_errors:
+            return 0
     return correct/size # return accuracy percentage
 
 def main():
@@ -129,7 +136,7 @@ def main():
     start_time = time.time() # start timer
 
     all_features = list(range(1, num_features + 1))
-    accuracy = leave_one_out(data, all_features)
+    accuracy = leave_one_out(data, all_features, 0)
 
     print(f'Running nearest neighbor with all {num_features} features, using "leaving-one-out" evaluation, I get an accuracy of {accuracy*100:.1f}%\n')
 
